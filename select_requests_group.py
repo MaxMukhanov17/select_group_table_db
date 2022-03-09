@@ -58,8 +58,7 @@ def select_request_5():
     JOIN tracks t ON a.id = t.albums_id
     JOIN collectiontrack ct ON t.id = ct.track_id
     JOIN collections c ON ct.collection_id = c.id
-    WHERE p.name = 'Michael Jackson'
-    GROUP BY c.name, p.name;
+    WHERE p.name = 'Michael Jackson';
     """).fetchall()
     print(sel)
 
@@ -79,11 +78,9 @@ def select_request_6():
 # наименование треков, которые не входят в сборники;
 def select_request_7():
     sel = connection.execute("""
-    SELECT name, id FROM tracks
-    WHERE id NOT IN (
-        SELECT track_id FROM collectiontrack
-        WHERE id IS NOT NULL)
-    GROUP BY name, id;
+    SELECT tracks.name FROM tracks
+    LEFT JOIN collectiontrack ON tracks.id = collectiontrack.track_id
+    WHERE collectiontrack.track_id IS NULL;
     """).fetchall()
     print(sel)
 
@@ -104,13 +101,16 @@ def select_request_9():
     sel = connection.execute("""
     SELECT a.name FROM tracks t
     JOIN albums a ON t.albums_id = a.id
-    WHERE   (
+    GROUP BY a.name
+    HAVING COUNT(t.albums_id) = (
         SELECT COUNT(t.albums_id) FROM tracks t
         JOIN albums a ON t.albums_id = a.id
-        GROUP BY a.name)
-    GROUP BY a.name;
+        GROUP BY a.id
+        ORDER BY COUNT
+        LIMIT 1);
     """).fetchall()
     print(sel)
+
 
 select_request_1()
 select_request_2()
